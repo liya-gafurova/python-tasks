@@ -7,17 +7,22 @@ multiprocessing or concurrent.futures.ProcessPoolExecutor. However, threading is
 an appropriate model if you want to run multiple I/O-bound tasks simultaneously.
 """
 import threading
+import time
 from threading import Thread
 
 
 def print_something(arg):
-    print(threading.current_thread())
     print(f'{arg} - your arg')
+    time.sleep(5)
+    print('after sleep')
+
 
 
 for i in range(5):
     thread = Thread(target=print_something, args=(i,))
     thread.start()
+    print(threading.active_count())
+    thread.join()
 
 
 
