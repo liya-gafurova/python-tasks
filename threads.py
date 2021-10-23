@@ -31,23 +31,28 @@ NUMBER_OF_LINES = 1000
 THREAD_COUNT = os.cpu_count()
 
 
+def clear_files():
+    for file in os.listdir(FILES_DIR):
+        os.remove(os.path.join(FILES_DIR, file))
+
+
+clear_files()
+
+
 def create_file(i):
     with open(f'./files/{i}-file.txt', 'w') as new_file:
         for line_number in range(NUMBER_OF_LINES):
             new_file.write(str(random.randint(1, 1000000)))
 
 
-for file in os.listdir(FILES_DIR):
-    os.remove(os.path.join(FILES_DIR, file))
+def without_threads():
+    # 0:00:00.763496 - time
+    time_start = datetime.datetime.now()
+    for j in range(NUMBER_OF_FILES):
+        create_file(j)
 
-
-# # 0:00:00.763496 - time
-# time_start = datetime.datetime.now()
-# for j in range(NUMBER_OF_FILES):
-#     create_file(j)
-#
-# time_finish = datetime.datetime.now()
-# print(f'{time_finish - time_start} - time')
+    time_finish = datetime.datetime.now()
+    print(f'{time_finish - time_start} - time')
 
 
 class MyThread(Thread):
@@ -63,17 +68,16 @@ class MyThread(Thread):
         print(f'finished thread - {self.name}')
 
 
-a_list = [i * math.floor(NUMBER_OF_FILES / THREAD_COUNT) for i in range(THREAD_COUNT)]
-b_list = a_list[1:]
-b_list.append(NUMBER_OF_FILES)
-assert len(a_list) == len(b_list)
+def with_threads():
+    a_list = [i * math.floor(NUMBER_OF_FILES / THREAD_COUNT) for i in range(THREAD_COUNT)]
+    b_list = a_list[1:]
+    b_list.append(NUMBER_OF_FILES)
+    assert len(a_list) == len(b_list)
 
-
-# 0:00:00.084930 - time --- не чистое время, так как считается время, как потоки запустились, но не доджилается заверщения
-time_start = datetime.datetime.now()
-for a, b in list(zip(a_list, b_list)):
-    thread = MyThread(a, b)
-    thread.start()
-time_finish = datetime.datetime.now()
-print(f'{time_finish - time_start} - time')
-
+    # 0:00:00.084930 - time --- не чистое время, так как считается время, как потоки запустились, но не доджилается заверщения
+    time_start = datetime.datetime.now()
+    for a, b in list(zip(a_list, b_list)):
+        thread = MyThread(a, b)
+        thread.start()
+    time_finish = datetime.datetime.now()
+    print(f'{time_finish - time_start} - time')
