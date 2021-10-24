@@ -17,6 +17,7 @@ an appropriate model if you want to run multiple I/O-bound tasks simultaneously.
 - Число потоков не превышает количество ядер.
     В противном случае параллельной работы всех потоков не получается и мы больше теряем, чем выигрываем.
 """
+from concurrent import futures
 import math
 import os
 import random
@@ -28,15 +29,29 @@ from threading import Thread
 FILES_DIR = './files/'
 NUMBER_OF_FILES = 1000
 NUMBER_OF_LINES = 1000
-THREAD_COUNT = os.cpu_count()
+# THREAD_COUNT = os.cpu_count()
+THREAD_COUNT = 2
 
 
-def clear_files():
-    for file in os.listdir(FILES_DIR):
-        os.remove(os.path.join(FILES_DIR, file))
+a_list = [i * math.floor(NUMBER_OF_FILES / THREAD_COUNT) for i in range(THREAD_COUNT)]
+b_list = a_list[1:]
+b_list.append(NUMBER_OF_FILES)
+a_b = list(zip(a_list, b_list))
+assert len(a_list) == len(b_list)
 
 
-clear_files()
+def count_time(function):
+    def wrapper():
+        time_start = datetime.datetime.now()
+        function()
+        time_finish = datetime.datetime.now()
+        print(f'{time_finish - time_start} - {function.__name__} time')
+
+        print(len(os.listdir(FILES_DIR)))
+        for file in os.listdir(FILES_DIR):
+            os.remove(os.path.join(FILES_DIR, file))
+
+    return wrapper
 
 
 def create_file(i):
@@ -45,14 +60,10 @@ def create_file(i):
             new_file.write(str(random.randint(1, 1000000)))
 
 
+@count_time
 def without_threads():
-    # 0:00:00.763496 - time
-    time_start = datetime.datetime.now()
     for j in range(NUMBER_OF_FILES):
         create_file(j)
-
-    time_finish = datetime.datetime.now()
-    print(f'{time_finish - time_start} - time')
 
 
 class MyThread(Thread):
@@ -62,22 +73,32 @@ class MyThread(Thread):
         self.b = b
 
     def run(self) -> None:
-        print(f'current thread - {self.name}')
         for i in range(self.a, self.b):
             create_file(i)
-        print(f'finished thread - {self.name}')
 
 
-def with_threads():
-    a_list = [i * math.floor(NUMBER_OF_FILES / THREAD_COUNT) for i in range(THREAD_COUNT)]
-    b_list = a_list[1:]
-    b_list.append(NUMBER_OF_FILES)
-    assert len(a_list) == len(b_list)
-
-    # 0:00:00.084930 - time --- не чистое время, так как считается время, как потоки запустились, но не доджилается заверщения
-    time_start = datetime.datetime.now()
+@count_time
+def with_threads_manual_start():
+    threads = list()
     for a, b in list(zip(a_list, b_list)):
         thread = MyThread(a, b)
+        threads.append(thread)
         thread.start()
-    time_finish = datetime.datetime.now()
-    print(f'{time_finish - time_start} - time')
+
+    for thread in threads:
+        thread.join()
+
+def create_files(ab):
+    a, b = ab
+    for i in range(a, b):
+        create_file(i)
+
+@count_time
+def with_thread_pool():
+    with futures.ThreadPoolExecutor(max_workers=THREAD_COUNT) as executor:
+        executor.map(create_files, a_b)
+
+
+without_threads()
+with_threads_manual_start()
+with_thread_pool()
