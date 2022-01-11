@@ -1,5 +1,3 @@
-.. image:: https://coveralls.io/repos/z4r/python-coveralls/badge.png?branch=main
-    :target: https://coveralls.io/r/z4r/python-coveralls
 
 # python-tasks
 python-tasks
