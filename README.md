@@ -1,3 +1,5 @@
+![Screenshot](https://github.com/liya-gafurova/python-tasks/blob/devel/coverage.svg)
+
 # python-tasks
 python-tasks
 
