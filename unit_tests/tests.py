@@ -37,7 +37,7 @@ class GeometricTestCase(unittest.TestCase):
         return number.quantize(Decimal(format))
 
     def test_get_area(self):
-        expected_area = self._round(4.0, "0.00")
+        expected_area = self._round(3.0, "0.00")
         triangle_area = self._round(self.triangle.get_area(), "0.00")
         self.assertEqual(triangle_area, expected_area)
 
